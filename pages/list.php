@@ -1,23 +1,35 @@
 <?php
-$dsn = "mysql:host=localhost;dbname=restaurantdb;charset=utf8";
-$user = "restaurantdb_admin";
-$password = "admin123";
-isset($_GET["area"]) ? $area = $_GET["area"] : $area = ""; 
-try {
-	$pdo = new PDO($dsn, $user, $password);
-	$sql = "select * from restaurants where area = ?";
-	$pstmt = $pdo->prepare($sql);
-	$pstmt->bindValue(1, $area);
-	$pstmt->execute();
+    $dsn = "mysql:host=localhost;dbname=restaurantdb;charset=utf8";
+    $user = "restaurantdb_admin";
+    $password = "admin123";
+    
+     isset($_GET["area"]) ? $area = $_GET["area"] : $area = "";
+    
+    try {
+    	$pdo = new PDO($dsn, $user, $password);
+    	$sql = "select * from restaurants where area=?";
+    	$pstmt = $pdo->prepare($sql);
+    	$pstmt->bindValue(1, $area);
+    	$pstmt->execute();
+    	$records = [];
+    	$records = $pstmt->fetchAll(PDO::FETCH_ASSOC);
+    	$stmt = $pdo->prepare("select * from restaurants");
+    	$stmt->execute();
+    	$allData = [];
+    	$allData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    	unset($pstmt);
+    	unset($stmt);
+    	unset($pdo);
+    } catch (PDOException $e) { 
+    	echo $e->getMessage();
+    } 
 
-	$records = [];
-	$records = $pstmt->fetchAll(PDO::FETCH_ASSOC);
-	unset($pstmt);
-	unset($pdo);
-} catch (PAGESException $e) {
-	echo $e->getMessage();
-}
+
+   
+    //$data = var_dump($area);
+    //$data2 = var_dump($records);
 ?>
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -44,47 +56,49 @@ try {
 					</select>
 					<input type="submit" value="検索" />
 				</form>
-				<br>
-			    <p> 選択結果 : 
-                <?php
-	                if (isset($_GET["area"])) {
-	                   $_areas = $_GET["area"];
-	                   echo $_areas;
-	                }
-	            ?>
-	            </p>
-	            <p>データタイプ :
-	            <?php
-	                $data = $_areas;
-	                var_dump($data);
-	            ?>
-	            </p>
 			</section>
 			</div>
-			<?php if(count($records) >0): ?>
 			<section class="result">
-			
-				<table class="list">
-				    <?php foreach ($records as $record): ?>
-					<tr>
-						<td class="photo"><img name="image" alt="「Wine Bar ENOTECA」の写真" src="../pages/img/<?= $record["image"] ?>"/></td>
-						<td class="info">
-							<dl>
-								<dt name="name"><?= $record["name"] ?></dt>
-								<dd name="description"><?= $record["description"] ?></dd>
-							</dl>
-						</td>
-						<td class="link"><a href="detail.php?id=1">詳細</a></td>
-					</tr>
-					<?php endforeach;?>
-			
-				</table>
-				<?php endif;?>
+			    <?php if(count($records) == 0): ?>
+			        <p><?= count($allData) ?>件のレストランが見つかりました。</p>
+    				<table class="list">
+    				    <?php foreach ($allData as $data): ?>
+        					<tr>
+        						<td class="photo"><img name="image" alt="「Wine Bar ENOTECA」の写真" src="../pages/img/<?= $data[image]?>" /></td>
+        						<td class="info">
+        							<dl>
+        								<dt name="name"><?= $data[name]?></dt>
+        								<dd name="description"><?= $data[description]?></dd>
+        							</dl>
+        						</td>
+        						<td class="link"><a href="detail.php?id=<?= $data[id]?>">詳細</a></td>
+        					</tr>
+    					<?php endforeach;?>
+    				</table>
+			    <?php endif;?>
+			    <?php if(count($records) > 0): ?>
+    				<p><?= count($records) ?>件のレストランが見つかりました。</p>
+    				<table class="list">
+    				    <?php foreach ($records as $record): ?>
+        					<tr>
+        						<td class="photo"><img name="image" alt="「Wine Bar ENOTECA」の写真" src="../pages/img/<?= $record[image]?>" /></td>
+        						<td class="info">
+        							<dl>
+        								<dt name="name"><?= $record[name]?></dt>
+        								<dd name="description"><?= $record[description]?></dd>
+        							</dl>
+        						</td>
+        						<td class="link"><a href="detail.php?id=<?= $record[id]?>">詳細</a></td>
+        					</tr>
+    					<?php endforeach;?>
+    				</table>
+    			<?php endif;?>
 			</section>
 		</article>
 	</main>
 	<footer>
 		<div class="copyright">&copy; 2020 the applied course of web system development</div>
 	</footer>
+	
 </body>
 </html>
